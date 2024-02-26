@@ -1,0 +1,14 @@
+public class Triangle5 {
+    public static void main(String[] args) {
+        int col = 1;
+        while (col <= 5) {
+            int num = 1;
+            while (num <= col) {
+                System.out.print('*');
+                num = num + 1;
+            }
+            System.out.println();
+            col = col + 1;
+        }
+    }
+}
