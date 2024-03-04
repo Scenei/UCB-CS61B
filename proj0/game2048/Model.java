@@ -113,7 +113,41 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
-
+        this.board.setViewingPerspective(side);
+        int s = this.board.size();
+        for (int i = 0; i < s; ++i) {  // for each column
+            int maxRow = s - 1;  // maxRow -> row - 1 when merging happens in a row, in order to prevent double-merging
+            for (int j = s-1; j >= 0; --j) {  // from north to south
+                Tile t = this.board.tile(i, j);
+                if (t != null) {  // only non-null can move
+                    for (int k = j+1; k <= maxRow; ++k) {
+                        Tile t2 = this.board.tile(i, k);
+                        if (t2 == null) {  // t2 is empty
+                            if (k == maxRow) {  // simply continue when k != maxRow
+                                this.board.move(i, k, t);
+                                changed = true;
+                            }
+                        }
+                        else {  // t2 isn't empty
+                            int tv = t.value(), t2v = t2.value();
+                            if (t2v == tv) {  // now we can merge
+                                this.board.move(i, k, t);
+                                this.score += tv * 2;
+                                maxRow = k - 1;  // nice
+                                changed = true;
+                            }
+                            else {  // the tile is blocked by tile with different value
+                                if (this.board.tile(i, k-1) == null) {  // I don't know how this works
+                                    this.board.move(i, k-1, t);
+                                    changed = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        this.board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
@@ -138,6 +172,14 @@ public class Model extends Observable {
      * */
     public static boolean emptySpaceExists(Board b) {
         // TODO: Fill in this function.
+        int s = b.size();
+        for (int i = 0; i < s; ++i) {
+            for (int j = 0; j < s; ++j) {
+                if (b.tile(i, j) == null) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -148,6 +190,16 @@ public class Model extends Observable {
      */
     public static boolean maxTileExists(Board b) {
         // TODO: Fill in this function.
+        int s = b.size();
+        for (int i = 0; i < s; ++i) {
+            for (int j = 0; j < s; ++j) {
+                if (b.tile(i, j) != null) {
+                    if (b.tile(i, j).value() == MAX_PIECE) {
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
@@ -159,6 +211,26 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        int s = b.size();
+        for (int i = 0; i < s; ++i) {
+            for (int j = 0; j < s; ++j) {
+                if (b.tile(i, j) == null) {
+                    return true;
+                }
+                else {
+                    int current_tile = b.tile(i, j).value(), down_tile = 0, left_tile = 0;
+                    if (i != 0) {  // down and left must be non-null
+                        down_tile = b.tile(i-1, j).value();
+                    }
+                    if (j != 0) {
+                        left_tile = b.tile(i, j-1).value();
+                    }
+                    if (current_tile == down_tile || current_tile == left_tile) {
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 
